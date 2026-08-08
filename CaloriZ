@@ -1,0 +1,1463 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CalorieZ | حاسبة السعرات الذكية الاحترافية</title>
+    <!-- خطوط جوجل (Tajawal) -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <!-- مكتبة الأيقونات -->
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <!-- مكتبة SweetAlert2 للتنبيهات الاحترافية -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        :root {
+            --bg-light: #f8fafc;
+            --card-light: #ffffff;
+            --text-light: #0f172a;
+            --border-light: #e2e8f0;
+            --input-light: #f1f5f9;
+
+            --bg-dark: #050505;
+            --card-dark: #121212;
+            --text-dark: #f8fafc;
+            --border-dark: #222222;
+            --input-dark: #1a1a1a;
+
+            --primary: #10b981;
+            --primary-hover: #059669;
+            --accent-glow: rgba(16, 185, 129, 0.15);
+            --danger: #ef4444;
+            --water-color: #0ea5e9;
+            --protein-color: #3b82f6;
+            --carbs-color: #f59e0b;
+            --fat-color: #ec4899;
+        }
+
+        html.dark {
+            --bg: var(--bg-dark);
+            --card: var(--card-dark);
+            --text: var(--text-dark);
+            --border: var(--border-dark);
+            --input-bg: var(--input-dark);
+        }
+
+        html:not(.dark) {
+            --bg: var(--bg-light);
+            --card: var(--card-light);
+            --text: var(--text-light);
+            --border: var(--border-light);
+            --input-bg: var(--input-light);
+        }
+
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: background-color 0.4s ease, color 0.4s ease;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        .swal2-popup {
+            font-family: 'Tajawal', sans-serif !important;
+            background: var(--card) !important;
+            color: var(--text) !important;
+            border: 1px solid var(--border) !important;
+            border-radius: 24px !important;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25) !important;
+        }
+        .swal2-title {
+            color: var(--primary) !important;
+            font-weight: 900 !important;
+            font-size: 1.4rem !important;
+        }
+        .swal2-html-container {
+            color: var(--text) !important;
+            font-size: 1.05rem !important;
+            font-weight: 700 !important;
+            line-height: 1.6 !important;
+        }
+        .swal2-styled.swal2-confirm {
+            background-color: var(--primary) !important;
+            color: #fff !important;
+            border-radius: 14px !important;
+            font-weight: 700 !important;
+            font-family: 'Tajawal', sans-serif !important;
+            padding: 10px 24px !important;
+            box-shadow: 0 6px 20px var(--accent-glow) !important;
+        }
+        .swal2-styled.swal2-confirm:hover {
+            background-color: var(--primary-hover) !important;
+        }
+
+        .bg-grid {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-image: 
+                linear-gradient(to right, rgba(16, 185, 129, 0.08) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(16, 185, 129, 0.08) 1px, transparent 1px);
+            background-size: 30px 30px;
+            mask-image: radial-gradient(circle at 100% 0%, rgba(0,0,0,1) 0%, rgba(0,0,0,0.3) 50%, rgba(0,0,0,0) 80%);
+            -webkit-mask-image: radial-gradient(circle at 100% 0%, rgba(0,0,0,1) 0%, rgba(0,0,0,0.3) 50%, rgba(0,0,0,0) 80%);
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        html.dark .bg-grid {
+            background-image: 
+                linear-gradient(to right, rgba(16, 185, 129, 0.15) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(16, 185, 129, 0.15) 1px, transparent 1px);
+        }
+
+        .container {
+            width: 100%;
+            max-width: 680px;
+            background: var(--card);
+            padding: 25px;
+            border-radius: 24px;
+            border: 1px solid var(--border);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.04);
+            position: relative;
+            transition: background-color 0.4s ease, border-color 0.4s ease;
+        }
+
+        .app-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .user-info-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-dropdown-container {
+            position: relative;
+            display: inline-block;
+        }
+
+        .user-badge {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--input-bg);
+            padding: 8px 14px;
+            border-radius: 50px;
+            cursor: pointer;
+            border: 1px solid var(--border);
+            font-weight: 700;
+            font-size: 0.9rem;
+            transition: 0.2s;
+        }
+
+        .user-badge:hover {
+            border-color: var(--primary);
+        }
+
+        .user-stats-pill {
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            display: flex;
+            gap: 10px;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            top: 110%;
+            right: 0;
+            width: 200px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            display: none;
+            z-index: 100;
+            overflow: hidden;
+            animation: fadeIn 0.2s ease;
+        }
+
+        .dropdown-menu.show {
+            display: block;
+        }
+
+        .dropdown-item {
+            padding: 12px 16px;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 0.9rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .dropdown-item:hover {
+            background-color: var(--input-bg);
+            color: var(--primary);
+        }
+
+        .dropdown-divider {
+            height: 1px;
+            background: var(--border);
+            margin: 0;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .icon-btn {
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            font-size: 1.1rem;
+            color: var(--text);
+            transition: 0.3s;
+        }
+
+        .icon-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 1.6rem;
+            font-weight: 900;
+            margin-bottom: 15px;
+            color: var(--primary);
+        }
+
+        .form-group {
+            margin-bottom: 14px;
+            opacity: 0;
+            transform: translateY(15px);
+            animation: fadeInUp 0.5s ease forwards;
+        }
+
+        .form-group:nth-child(1) { animation-delay: 0.05s; }
+        .form-group:nth-child(2) { animation-delay: 0.1s; }
+        .form-group:nth-child(3) { animation-delay: 0.15s; }
+        .form-group:nth-child(4) { animation-delay: 0.2s; }
+        .form-group:nth-child(5) { animation-delay: 0.25s; }
+
+        @keyframes fadeInUp {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 700;
+            font-size: 0.88rem;
+        }
+
+        .input-box {
+            position: relative;
+        }
+
+        .input-box i {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #64748b;
+            font-size: 1.1rem;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 11px 14px;
+            padding-right: 42px;
+            background: var(--input-bg);
+            border: 2px solid var(--border);
+            border-radius: 14px;
+            font-size: 0.95rem;
+            color: var(--text);
+            font-family: 'Tajawal', sans-serif;
+            transition: 0.3s;
+            box-sizing: border-box;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px var(--accent-glow);
+        }
+
+        .row-inputs {
+            display: flex;
+            gap: 10px;
+        }
+
+        button.main-btn {
+            width: 100%;
+            padding: 11px;
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            border-radius: 14px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: 'Tajawal', sans-serif;
+            transition: 0.3s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        button.main-btn:hover {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px var(--accent-glow);
+        }
+
+        .secondary-btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 10px;
+            border-radius: 14px;
+            font-size: 0.88rem;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: 'Tajawal', sans-serif;
+            transition: 0.2s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 6px;
+            flex: 1;
+        }
+        .secondary-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .calc-tdee-btn {
+            background: transparent;
+            border: 1px dashed var(--primary);
+            color: var(--primary);
+            padding: 8px;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            width: 100%;
+            font-weight: 700;
+            margin-top: 5px;
+            transition: 0.2s;
+        }
+        .calc-tdee-btn:hover {
+            background: var(--accent-glow);
+        }
+
+        .date-control-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--input-bg);
+            padding: 10px 14px;
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            margin-bottom: 15px;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        .date-control-bar input[type="date"] {
+            width: auto;
+            padding: 6px 10px;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            border: 1px solid var(--border);
+        }
+
+        .motivation {
+            background: var(--accent-glow);
+            color: var(--primary);
+            padding: 10px 14px;
+            border-radius: 14px;
+            font-size: 0.88rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 15px;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .gamification-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .streak-badge, .achievement-badge {
+            flex: 1;
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            padding: 10px;
+            border-radius: 14px;
+            text-align: center;
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+
+        .water-tracker-box {
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            padding: 14px 16px;
+            border-radius: 16px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .water-info span {
+            font-size: 0.8rem;
+            opacity: 0.7;
+            display: block;
+        }
+        .water-info h4 {
+            margin: 0;
+            font-size: 1.05rem;
+            color: var(--water-color);
+        }
+        .water-cups {
+            display: flex;
+            gap: 6px;
+            cursor: pointer;
+        }
+        .cup-icon {
+            font-size: 1.4rem;
+            opacity: 0.3;
+            transition: 0.2s;
+        }
+        .cup-icon.filled {
+            opacity: 1;
+            transform: scale(1.1);
+        }
+
+        .quick-actions-grid {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .target-progress-box {
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            padding: 12px 16px;
+            border-radius: 16px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .target-info span {
+            font-size: 0.8rem;
+            opacity: 0.7;
+            display: block;
+        }
+
+        .target-info h4 {
+            margin: 0;
+            font-size: 1.1rem;
+            color: var(--primary);
+        }
+
+        .macros-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .macro-card {
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            padding: 10px;
+            border-radius: 14px;
+            text-align: center;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+        .macro-card span { display: block; opacity: 0.7; font-size: 0.75rem; }
+
+        h3 {
+            font-size: 1rem;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .table-wrapper {
+            background: var(--input-bg);
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            margin-top: 8px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: right;
+        }
+
+        th, td {
+            padding: 10px 14px;
+            font-size: 0.88rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            background: rgba(16, 185, 129, 0.08);
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .meal-category-row {
+            background: rgba(16, 185, 129, 0.03);
+            font-weight: bold;
+            color: var(--primary);
+            border-top: 2px solid var(--border);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        td.cals-val {
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .delete-btn {
+            background: transparent;
+            border: none;
+            color: var(--danger);
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 2px 6px;
+            border-radius: 6px;
+        }
+        .delete-btn:hover {
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        .total-box {
+            margin-top: 15px;
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            padding: 14px 18px;
+            border-radius: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 700;
+            font-size: 0.95rem;
+        }
+
+        .total-number {
+            background: var(--primary);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 10px;
+            font-size: 1.1rem;
+        }
+
+        #pwaInstallBanner {
+            display: none;
+            background: var(--primary);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            text-align: center;
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-grid"></div>
+
+    <div class="container">
+        <!-- زر التثبيت للشاشة الرئيسية -->
+        <div id="pwaInstallBanner" onclick="installPWA()">
+            📱 ثبّت تطبيق CalorieZ على موبايلك (Add to Home Screen)
+        </div>
+
+        <!-- شاشة تسجيل الاسم والبيانات الأساسية -->
+        <div id="nameScreen">
+            <h1>CalorieZ <span style="font-size: 1rem; opacity: 0.6;">⚡</span></h1>
+            
+            <div class="form-group" style="opacity: 1; transform: none;">
+                <label>اسمك إيه يا بطل؟</label>
+                <div class="input-box">
+                    <i class='bx bx-user-pin'></i>
+                    <input type="text" id="setupName" placeholder="اكتب اسمك هنا...">
+                </div>
+            </div>
+
+            <div class="row-inputs">
+                <div class="form-group" style="opacity: 1; transform: none; flex: 1;">
+                    <label>سنك كام؟</label>
+                    <div class="input-box">
+                        <i class='bx bx-calendar'></i>
+                        <input type="number" id="setupAge" placeholder="مثال: 17">
+                    </div>
+                </div>
+                <div class="form-group" style="opacity: 1; transform: none; flex: 1;">
+                    <label>طولك كام (سم)</label>
+                    <div class="input-box">
+                        <i class='bx bx-ruler'></i>
+                        <input type="number" id="setupHeight" placeholder="مثال: 175">
+                    </div>
+                </div>
+            </div>
+
+            <div class="row-inputs">
+                <div class="form-group" style="opacity: 1; transform: none; flex: 1;">
+                    <label>وزنك كام (كجم)</label>
+                    <div class="input-box">
+                        <i class='bx bx-line-chart'></i>
+                        <input type="number" id="setupWeight" placeholder="مثال: 70">
+                    </div>
+                </div>
+                <div class="form-group" style="opacity: 1; transform: none; flex: 1;">
+                    <label>مستوى نشاطك اليومي</label>
+                    <div class="input-box">
+                        <select id="setupActivity" style="padding-right: 15px;">
+                            <option value="1.2">قاعد كتير (تمرين قليل)</option>
+                            <option value="1.375" selected>خفيف (تمرين 2-3 أيام)</option>
+                            <option value="1.55">متوسط (تمرين 3-5 أيام)</option>
+                            <option value="1.725">عالي (تمرين مكثف)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group" style="opacity: 1; transform: none;">
+                <label>تارجت السعرات اليومية (أو سيبه يحسبه أوتوماتيك)</label>
+                <div class="input-box">
+                    <i class='bx bx-target-lock'></i>
+                    <input type="number" id="setupTarget" placeholder="مثال: 2000">
+                </div>
+                <button type="button" class="calc-tdee-btn" onclick="calculateAutoTDEE()"><i class='bx bx-calculator'></i> احسبلي التارجت بتاعي بذكاء 🧠</button>
+            </div>
+
+            <button class="main-btn" onclick="saveInitialProfile()">
+                <i class='bx bx-right-arrow-alt'></i> ادخل على الموقع وابدأ الرحلة
+            </button>
+        </div>
+
+        <!-- الشاشة الرئيسية للتطبيق -->
+        <div id="appScreen" style="display: none;">
+            <div class="app-header">
+                <div class="user-info-group">
+                    <button class="icon-btn" onclick="goToSignIn()" title="ارجع لصفحة الحسابات">
+                        <i class='bx bx-right-arrow-alt' style="font-size: 1.3rem;"></i>
+                    </button>
+                    <div class="user-dropdown-container">
+                        <div class="user-badge" id="userDropdownTrigger" onclick="toggleDropdown()">
+                            <span id="currentUserNameDisplay">يوسف</span>
+                            <i class='bx bx-chevron-down' id="arrowIcon"></i>
+                        </div>
+                        <div class="dropdown-menu" id="userDropdownMenu">
+                            <div id="usersListContainer"></div>
+                            <div class="dropdown-divider"></div>
+                            <div class="dropdown-item" onclick="promptNewUser()" style="color: var(--primary); font-weight: 700;">
+                                <span>إضافة يوزر جديد</span>
+                                <i class='bx bx-plus'></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="user-stats-pill" id="userStatsPill">
+                        <span>طولك: <b id="pillHeight">0</b></span>
+                        <span>وزنك: <b id="pillWeight">0</b></span>
+                    </div>
+                </div>
+
+                <div class="header-actions">
+                    <button class="icon-btn" onclick="openWeeklyAnalytics()" title="إحصائيات الأسبوع">
+                        <i class='bx bx-bar-chart-alt-2'></i>
+                    </button>
+                    <button class="icon-btn" onclick="toggleTheme()" title="غيّر الثيم">
+                        <i class='bx bx-moon' id="themeIcon"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- شريط الستريك والإنجازات -->
+            <div class="gamification-bar">
+                <div class="streak-badge">
+                    🔥 ستريك الالتزام: <span id="streakCount">0</span> أيام
+                </div>
+                <div class="achievement-badge" id="achievementBadge">
+                    🏆 مستواك: بطل جديد
+                </div>
+            </div>
+
+            <!-- عداد المياة -->
+            <div class="water-tracker-box">
+                <div class="water-info">
+                    <span>كوبايات المياة النهاردة</span>
+                    <h4 id="waterCountDisplay">0 / 8 كوبايات (2 لتر)</h4>
+                </div>
+                <div class="water-cups" id="waterCupsContainer" onclick="toggleWaterCup()">
+                    <i class='bx bxs-droplet cup-icon' data-index="1"></i>
+                    <i class='bx bxs-droplet cup-icon' data-index="2"></i>
+                    <i class='bx bxs-droplet cup-icon' data-index="3"></i>
+                    <i class='bx bxs-droplet cup-icon' data-index="4"></i>
+                    <i class='bx bxs-droplet cup-icon' data-index="5"></i>
+                    <i class='bx bxs-droplet cup-icon' data-index="6"></i>
+                    <i class='bx bxs-droplet cup-icon' data-index="7"></i>
+                    <i class='bx bxs-droplet cup-icon' data-index="8"></i>
+                </div>
+            </div>
+
+            <!-- شريط اختيار التاريخ -->
+            <div class="date-control-bar">
+                <span>📅 تاريخ النهاردة:</span>
+                <input type="date" id="selectedDateInput" onchange="changeDateHandler()">
+            </div>
+
+            <!-- أزرار الإجراءات السريعة -->
+            <div class="quick-actions-grid">
+                <button class="secondary-btn" onclick="copyYesterdayMeals()">
+                    <i class='bx bx-copy'></i> خد وجبات امبارح
+                </button>
+                <button class="secondary-btn" onclick="openFavoritesModal()">
+                    <i class='bx bx-star'></i> المفضلة ({<span id="favCount">0</span>})
+                </button>
+            </div>
+
+            <div class="motivation" id="motivationMsg">كل خطوة بتفرق معاك، كمل تارجتك بذكاء وعزيمة! 🔥</div>
+
+            <!-- مؤشر تارجت السعرات -->
+            <div class="target-progress-box">
+                <div class="target-info">
+                    <span>تارجت اليوم المطلوب</span>
+                    <h4 id="targetDisplay">2000 سعرة</h4>
+                </div>
+                <div class="target-info" style="text-align: left;">
+                    <span>المتبقي في يومك</span>
+                    <h4 id="remainingDisplay">2000 متبقي</h4>
+                </div>
+            </div>
+
+            <!-- مؤشر الماكروز -->
+            <div class="macros-grid">
+                <div class="macro-card">
+                    <span>بروتين (Protein)</span>
+                    <b id="proteinProgress">0 / 140 جم</b>
+                </div>
+                <div class="macro-card">
+                    <span>كارب (Carbs)</span>
+                    <b id="carbsProgress">0 / 220 جم</b>
+                </div>
+                <div class="macro-card">
+                    <span>دهون (Fats)</span>
+                    <b id="fatProgress">0 / 60 جم</b>
+                </div>
+            </div>
+
+            <!-- إدخال الوجبة -->
+            <div class="form-group">
+                <label>نوع الوجبة إيه؟</label>
+                <div class="input-box">
+                    <i class='bx bx-category'></i>
+                    <select id="mealCategory">
+                        <option value="فطار">🍳 فطار</option>
+                        <option value="غدا">🍗 غدا</option>
+                        <option value="عشا">🥗 عشا</option>
+                        <option value="سناكس">🍿 سناكس / تسالي</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>اسم الأكلة (اكتب اللي بتاكله بالعربي عادي وهو هيعرفه لوحده 🤖✨)</label>
+                <div class="input-box">
+                    <i class='bx bx-bowl-rice'></i>
+                    <input type="text" id="mealName" placeholder="مثال: بيض مسلوق، فراخ مشوية، لبن، جبنة رومي..." oninput="checkSmartDatabase()">
+                </div>
+            </div>
+
+            <div class="row-inputs">
+                <div class="form-group" style="flex: 1;">
+                    <label>سعرات الـ 100 جرام (أو البيضة)</label>
+                    <div class="input-box">
+                        <i class='bx bx-flame'></i>
+                        <input type="number" id="caloriesPer100" placeholder="مثال: 165">
+                    </div>
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label>الكمية أو الوزن (جرام أو عدد)</label>
+                    <div class="input-box">
+                        <i class='bx bx-tachometer'></i>
+                        <input type="number" id="eatenWeight" placeholder="مثال: 200 أو 2 بيضة">
+                    </div>
+                </div>
+            </div>
+
+            <div class="row-inputs">
+                <div class="form-group" style="flex: 1;">
+                    <label>بروتين الـ 100 جم (أو البيضة)</label>
+                    <div class="input-box">
+                        <i class='bx bx-shield-plus'></i>
+                        <input type="number" id="proteinPer100" placeholder="تلقائي من الداتا...">
+                    </div>
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label>كارب الـ 100 جم</label>
+                    <div class="input-box">
+                        <i class='bx bx-cookie'></i>
+                        <input type="number" id="carbsPer100" placeholder="تلقائي من الداتا...">
+                    </div>
+                </div>
+            </div>
+
+            <div class="row-inputs" style="margin-top: 5px;">
+                <button class="main-btn" onclick="addMeal()" style="flex: 2;">
+                    <i class='bx bx-plus-circle'></i> ضيف الوجبة دي لليوم
+                </button>
+                <button class="secondary-btn" onclick="saveCurrentMealToFavorites()" style="flex: 1; margin-top: 8px;" title="احفظها في المفضلة">
+                    <i class='bx bx-star'></i> حفظ كمفضلة
+                </button>
+            </div>
+
+            <h3><i class='bx bx-history'></i> وجباتك المسجلة النهاردة</h3>
+            
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>الأكلة</th>
+                            <th>الكمية</th>
+                            <th>السعرات</th>
+                            <th>مسح</th>
+                        </tr>
+                    </thead>
+                    <tbody id="mealsTableBody">
+                        <!-- الوجبات بتظهر هنا -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="total-box">
+                <span>إجمالي سعراتك النهاردة:</span>
+                <span class="total-number"><span id="totalCalories">0</span> سعرة</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // قاعدة بيانات ذكية للأكلات المصرية والعالمية الشهيرة (سعرات وبروتين وكارب ودهون لكل 100 جرام أو لكل وحدة بالظبط)
+        const smartFoodDatabase = [
+            { keywords: ["بيض مسلوق", "بيضة مسلوقة", "بيض"], cal: 155, prot: 13, carb: 1.1, fat: 11, note: "لكل 100 جم (البيضة المتوسطة حوالي 50 جم وتحسبها بنص الكمية)" },
+            { keywords: ["بيض مقلي", "بيضة مقلية", "اومليت"], cal: 196, prot: 14, carb: 1.2, fat: 15, note: "لكل 100 جم" },
+            { keywords: ["صدر فرخة", "فراخ مشوية", "دجاج", "فراخ بانيه", "صدور دجاج"], cal: 165, prot: 31, carb: 0, fat: 3.6, note: "لكل 100 جم" },
+            { keywords: ["لحم مسلوق", "لحمة", "لحم ضاني", "لحم بتلو"], cal: 250, prot: 26, carb: 0, fat: 15, note: "لكل 100 جم" },
+            { keywords: ["تونه", "علبة تونه", "تونة"], cal: 116, prot: 26, carb: 0, fat: 1, note: "لكل 100 جم مصفاة" },
+            { keywords: ["لبن", "حليب", "حليب كامل الدسم", "لبن بقرى"], cal: 61, prot: 3.2, carb: 4.8, fat: 3.3, note: "لكل 100 مل" },
+            { keywords: ["جبنه قريش", "جبنة قريش"], cal: 98, prot: 11, carb: 3.4, fat: 4.3, note: "لكل 100 جم" },
+            { keywords: ["جبنه رومي", "جبنة رومي", "رومي"], cal: 395, prot: 25, carb: 1.5, fat: 32, note: "لكل 100 جم" },
+            { keywords: ["جبنه بيضاء", "جبنة فلاحي", "جبنة بيضاء"], cal: 250, prot: 14, carb: 2, fat: 21, note: "لكل 100 جم" },
+            { keywords: ["فول", "فول مدمس", "طبق فول"], cal: 115, prot: 7.6, carb: 20, fat: 0.5, note: "لكل 100 جم مطبوخ" },
+            { keywords: ["طعمية", "فلافل", "قرص طعمية"], cal: 330, prot: 13, carb: 25, fat: 20, note: "لكل 100 جم" },
+            { keywords: ["عيش بلدي", "رغيف عيش", "عيش مصري"], cal: 250, prot: 8, carb: 50, fat: 1.5, note: "لكل 100 جم (الرغيف البلدي المتوسط وزنه حوالي 90-100 جم)" },
+            { keywords: ["عيش فينو", "فينو"], cal: 280, prot: 9, carb: 52, fat: 3, note: "لكل 100 جم" },
+            { keywords: ["أرز مصري", "رز", "أرز مطبوخ"], cal: 130, prot: 2.7, carb: 28, fat: 0.3, note: "لكل 100 جم مطبوخ" },
+            { keywords: ["مكرونة", "مكرونه مسلوقة"], cal: 158, prot: 5.8, carb: 31, fat: 0.9, note: "لكل 100 جم مسلوقة" },
+            { keywords: ["موز", "ملاية موز"], cal: 89, prot: 1.1, carb: 23, fat: 0.3, note: "لكل 100 جم" },
+            { keywords: ["تفاح", "تفاحة"], cal: 52, prot: 0.3, carb: 14, fat: 0.2, note: "لكل 100 جم" },
+            { keywords: ["شوفان"], cal: 389, prot: 16.9, carb: 66, fat: 6.9, note: "لكل 100 جم جاف" },
+            { keywords: ["سوداني", "مكسرات"], cal: 567, prot: 25.8, carb: 16, fat: 49, note: "لكل 100 جم" }
+        ];
+
+        let usersData = JSON.parse(localStorage.getItem("caloriez_users_v4")) || {};
+        let activeUser = localStorage.getItem("caloriez_active_user_v4") || null;
+        let selectedDate = getTodayDateString();
+
+        function getTodayDateString() {
+            let d = new Date();
+            let month = '' + (d.getMonth() + 1),
+                day = '' + d.getDate(),
+                year = d.getFullYear();
+            if (month.length < 2) month = '0' + month;
+            if (day.length < 2) day = '0' + day;
+            return [year, month, day].join('-');
+        }
+
+        function getYesterdayDateString() {
+            let d = new Date();
+            d.setDate(d.getDate() - 1);
+            let month = '' + (d.getMonth() + 1),
+                day = '' + d.getDate(),
+                year = d.getFullYear();
+            if (month.length < 2) month = '0' + month;
+            if (day.length < 2) day = '0' + day;
+            return [year, month, day].join('-');
+        }
+
+        window.onload = function() {
+            let savedTheme = localStorage.getItem("caloriez_theme") || "dark";
+            setTheme(savedTheme);
+
+            document.getElementById("selectedDateInput").value = selectedDate;
+
+            if (activeUser && usersData[activeUser]) {
+                initApp(activeUser);
+            } else {
+                document.getElementById("nameScreen").style.display = "block";
+                document.getElementById("appScreen").style.display = "none";
+            }
+        };
+
+        function goToSignIn() {
+            document.getElementById("appScreen").style.display = "none";
+            document.getElementById("nameScreen").style.display = "block";
+        }
+
+        function calculateAutoTDEE() {
+            let age = parseFloat(document.getElementById("setupAge").value) || 17;
+            let height = parseFloat(document.getElementById("setupHeight").value) || 175;
+            let weight = parseFloat(document.getElementById("setupWeight").value) || 70;
+            let activity = parseFloat(document.getElementById("setupActivity").value) || 1.375;
+
+            let bmr = (10 * weight) + (6.25 * height) - (5 * age) + 5;
+            let tdee = Math.round(bmr * activity);
+            
+            document.getElementById("setupTarget").value = tdee;
+            
+            Swal.fire({
+                title: 'حسبتهالك بالمللي يا بطل! 🎯',
+                html: `السعرات اللي جسمك محتاجها في يومك عشان يثبت أو يخس بانتظام هي: <b style="color:var(--primary); font-size:1.2rem;">${tdee} سعرة</b> 💪🔥`,
+                icon: 'success',
+                confirmButtonText: 'جامد، تسلم! 🚀'
+            });
+        }
+
+        function saveInitialProfile() {
+            let name = document.getElementById("setupName").value.trim();
+            let age = parseFloat(document.getElementById("setupAge").value) || 17;
+            let height = parseFloat(document.getElementById("setupHeight").value);
+            let weight = parseFloat(document.getElementById("setupWeight").value);
+            let target = parseFloat(document.getElementById("setupTarget").value);
+
+            if (!name || isNaN(height) || isNaN(weight) || isNaN(target)) {
+                Swal.fire({
+                    title: 'يا بطل اتأكد!',
+                    text: 'مكتشفتش كل البيانات، املا البيانات الأساسية الأول عشان نكمل!',
+                    icon: 'warning',
+                    confirmButtonText: 'حاضر'
+                });
+                return;
+            }
+
+            usersData[name] = {
+                age: age,
+                height: height,
+                weight: weight,
+                targetCals: target,
+                targetProtein: Math.round(weight * 2),
+                targetCarbs: Math.round((target * 0.4) / 4),
+                targetFat: Math.round((target * 0.25) / 9),
+                streak: 0,
+                days: {},
+                water: {},
+                favorites: []
+            };
+
+            activeUser = name;
+            localStorage.setItem("caloriez_users_v4", JSON.stringify(usersData));
+            localStorage.setItem("caloriez_active_user_v4", activeUser);
+
+            document.getElementById("nameScreen").style.display = "none";
+            document.getElementById("appScreen").style.display = "block";
+            initApp(activeUser);
+        }
+
+        function promptNewUser() {
+            let name = prompt("اكتب اسم اليوزر الجديد:");
+            if (!name || name.trim() === "") return;
+            name = name.trim();
+
+            let height = parseFloat(prompt("طولك كام سم؟")) || 170;
+            let weight = parseFloat(prompt("وزنك كام كجم؟")) || 70;
+            let target = parseFloat(prompt("تارجت السعرات اليومية كام؟")) || 2000;
+
+            usersData[name] = {
+                age: 17,
+                height: height,
+                weight: weight,
+                targetCals: target,
+                targetProtein: Math.round(weight * 2),
+                targetCarbs: 200,
+                targetFat: 65,
+                streak: 0,
+                days: {},
+                water: {},
+                favorites: []
+            };
+
+            activeUser = name;
+            localStorage.setItem("caloriez_users_v4", JSON.stringify(usersData));
+            localStorage.setItem("caloriez_active_user_v4", activeUser);
+            toggleDropdown();
+            initApp(activeUser);
+        }
+
+        function initApp(username) {
+            document.getElementById("currentUserNameDisplay").innerText = username;
+            let userData = usersData[username];
+            if (!userData.water) userData.water = {};
+            if (!userData.favorites) userData.favorites = [];
+
+            document.getElementById("pillHeight").innerText = userData.height + " سم";
+            document.getElementById("pillWeight").innerText = userData.weight + " كجم";
+            document.getElementById("targetDisplay").innerText = userData.targetCals + " سعرة";
+
+            renderMeals();
+            renderWater();
+            updateFavoritesCount();
+            updateDropdownList();
+        }
+
+        function toggleDropdown() {
+            const menu = document.getElementById("userDropdownMenu");
+            const badge = document.getElementById("userDropdownTrigger");
+            menu.classList.toggle("show");
+            badge.classList.toggle("active");
+        }
+
+        function updateDropdownList() {
+            let container = document.getElementById("usersListContainer");
+            container.innerHTML = "";
+            for (let uname in usersData) {
+                let isCurrent = uname === activeUser ? '✓ ' : '';
+                container.innerHTML += `
+                    <div class="dropdown-item" onclick="switchUser('${uname}')">
+                        <span>${isCurrent}${uname}</span>
+                    </div>
+                `;
+            }
+        }
+
+        function switchUser(uname) {
+            activeUser = uname;
+            localStorage.setItem("caloriez_active_user_v4", activeUser);
+            toggleDropdown();
+            initApp(activeUser);
+        }
+
+        function changeDateHandler() {
+            selectedDate = document.getElementById("selectedDateInput").value;
+            renderMeals();
+            renderWater();
+        }
+
+        // --- نظام الذكاء الاصطناعي المحلي للتعرف التلقائي على الأكل المصري ---
+        function checkSmartDatabase() {
+            let query = document.getElementById("mealName").value.trim().toLowerCase();
+            if (query.length < 2) return;
+
+            // البحث بالكلمات المفتاحية
+            for (let food of smartFoodDatabase) {
+                for (let kw of food.keywords) {
+                    if (query.includes(kw.toLowerCase())) {
+                        document.getElementById("caloriesPer100").value = food.cal;
+                        document.getElementById("proteinPer100").value = food.prot;
+                        document.getElementById("carbsPer100").value = food.carb;
+                        break;
+                    }
+                }
+            }
+        }
+
+        // عداد المياه
+        function toggleWaterCup() {
+            let userData = usersData[activeUser];
+            let currentWater = userData.water[selectedDate] || 0;
+            currentWater = (currentWater >= 8) ? 0 : currentWater + 1;
+            userData.water[selectedDate] = currentWater;
+            localStorage.setItem("caloriez_users_v4", JSON.stringify(usersData));
+            renderWater();
+        }
+
+        function renderWater() {
+            let userData = usersData[activeUser];
+            let cups = (userData.water && userData.water[selectedDate]) ? userData.water[selectedDate] : 0;
+            document.getElementById("waterCountDisplay").innerText = `${cups} / 8 كوبايات (${(cups * 0.25).toFixed(1)} لتر)`;
+            
+            let icons = document.querySelectorAll(".cup-icon");
+            icons.forEach((icon, index) => {
+                if (index < cups) {
+                    icon.classList.add("filled");
+                } else {
+                    icon.classList.remove("filled");
+                }
+            });
+        }
+
+        // نسخ وجبات امبارح
+        function copyYesterdayMeals() {
+            let userData = usersData[activeUser];
+            let yesterday = getYesterdayDateString();
+            if (!userData.days[yesterday] || userData.days[yesterday].length === 0) {
+                Swal.fire({
+                    title: 'يا عريس مافيش حاجة!',
+                    text: 'مفيش وجبات متسجلة ليوم امبارح عشان نقدر ننسخها.',
+                    icon: 'info',
+                    confirmButtonText: 'فهمتك'
+                });
+                return;
+            }
+
+            if (!userData.days[selectedDate]) {
+                userData.days[selectedDate] = [];
+            }
+
+            let yesterdayMeals = JSON.parse(JSON.stringify(userData.days[yesterday]));
+            yesterdayMeals.forEach(m => {
+                m.id = Date.now() + Math.random();
+                userData.days[selectedDate].push(m);
+            });
+
+            localStorage.setItem("caloriez_users_v4", JSON.stringify(usersData));
+            renderMeals();
+            Swal.fire({
+                title: 'تم النسخ بنجاح! 🚀',
+                text: 'وجبات امبارح اتنقلت لتاريخ النهاردة بكل سعراتها.',
+                icon: 'success',
+                confirmButtonText: 'عاش'
+            });
+        }
+
+        // المفضلة
+        function saveCurrentMealToFavorites() {
+            let meal = document.getElementById("mealName").value.trim();
+            let cal100 = parseFloat(document.getElementById("caloriesPer100").value);
+            let prot100 = parseFloat(document.getElementById("proteinPer100").value) || 0;
+            let carb100 = parseFloat(document.getElementById("carbsPer100").value) || 0;
+
+            if (meal === "" || isNaN(cal100)) {
+                Swal.fire({
+                    title: 'تنبيه',
+                    text: 'اكتب اسم الأكلة وسعراتها الأول عشان تتسجل في المفضلة!',
+                    icon: 'warning',
+                    confirmButtonText: 'حاضر'
+                });
+                return;
+            }
+
+            let userData = usersData[activeUser];
+            userData.favorites.push({ name: meal, cal100: cal100, prot100: prot100, carb100: carb100 });
+            localStorage.setItem("caloriez_users_v4", JSON.stringify(usersData));
+            updateFavoritesCount();
+
+            Swal.fire({
+                title: 'اتحفظت في المفضلة ⭐',
+                text: `تقدر ترجع لـ (${meal}) في أي وقت بضغطة زرار.`,
+                icon: 'success',
+                confirmButtonText: 'تسلم!'
+            });
+        }
+
+        function updateFavoritesCount() {
+            let userData = usersData[activeUser];
+            document.getElementById("favCount").innerText = userData.favorites ? userData.favorites.length : 0;
+        }
+
+        function openFavoritesModal() {
+            let userData = usersData[activeUser];
+            if (!userData.favorites || userData.favorites.length === 0) {
+                Swal.fire({
+                    title: 'المفضلة فاضية',
+                    text: 'مفيش أي أكلات محفوظة في المفضلة لحد دلوقتي.',
+                    icon: 'info',
+                    confirmButtonText: 'تمام'
+                });
+                return;
+            }
+
+            let htmlContent = `<div style="max-height:250px; overflow-y:auto; text-align:right;">`;
+            userData.favorites.forEach((fav, index) => {
+                htmlContent += `
+                    <div style="background:var(--input-bg); padding:10px 14px; border-radius:12px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <b>${fav.name}</b><br>
+                            <span style="font-size:0.8rem; opacity:0.7;">${fav.cal100} سعرة / للـ 100جم</span>
+                        </div>
+                        <button onclick="selectFavorite(${index})" style="background:var(--primary); color:white; border:none; padding:6px 12px; border-radius:8px; cursor:pointer; font-weight:700;">اختارها</button>
+                    </div>
+                `;
+            });
+            htmlContent += `</div>`;
+
+            Swal.fire({
+                title: '⭐ أكلاتك المفضلة',
+                html: htmlContent,
+                showConfirmButton: false,
+                showCloseButton: true
+            });
+        }
+
+        function selectFavorite(index) {
+            let userData = usersData[activeUser];
+            let fav = userData.favorites[index];
+            document.getElementById("mealName").value = fav.name;
+            document.getElementById("caloriesPer100").value = fav.cal100;
+            document.getElementById("proteinPer100").value = fav.prot100;
+            document.getElementById("carbsPer100").value = fav.carb100;
+            Swal.close();
+        }
+
+        // إحصائيات الأسبوع
+        function openWeeklyAnalytics() {
+            let userData = usersData[activeUser];
+            let d = new Date();
+            let totalCalsWeek = 0;
+            let daysCount = 0;
+
+            for (let i = 0; i < 7; i++) {
+                let dateStr = d.toISOString().split('T')[0];
+                if (userData.days && userData.days[dateStr]) {
+                    let dayTotal = userData.days[dateStr].reduce((sum, m) => sum + m.cals, 0);
+                    totalCalsWeek += dayTotal;
+                    daysCount++;
+                }
+                d.setDate(d.getDate() - 1);
+            }
+
+            let avgCals = daysCount > 0 ? Math.round(totalCalsWeek / daysCount) : 0;
+
+            Swal.fire({
+                title: '📊 ملخص آخر 7 أيام',
+                html: `
+                    <div style="text-align: right; line-height: 1.8;">
+                        <p>🔥 متوسط سعراتك اليومية: <b style="color:var(--primary);">${avgCals} سعرة</b></p>
+                        <p>🎯 تارجتك الأساسي: <b>${userData.targetCals} سعرة</b></p>
+                        <p>🔥 الستريك بتاعك: <b style="color:var(--carbs-color);">${userData.streak || 0} أيام التزام</b></p>
+                        <hr style="border:0; border-top:1px solid var(--border); margin: 15px 0;">
+                        <span style="font-size: 0.85rem; opacity: 0.8;">الاستمرارية هي اللي بتجيب نتيجة، عاش يا بطل! 💪</span>
+                    </div>
+                `,
+                icon: 'info',
+                confirmButtonText: 'اقفل'
+            });
+        }
+
+        // إضافة الوجبة وحساب السعرات والماكروز بدقة
+        function addMeal() {
+            let category = document.getElementById("mealCategory").value;
+            let meal = document.getElementById("mealName").value.trim();
+            let cal100 = parseFloat(document.getElementById("caloriesPer100").value);
+            let weight = parseFloat(document.getElementById("eatenWeight").value);
+            let prot100 = parseFloat(document.getElementById("proteinPer100").value) || 0;
+            let carb100 = parseFloat(document.getElementById("carbsPer100").value) || 0;
+
+            if (meal === "" || isNaN(cal100) || isNaN(weight)) {
+                Swal.fire({
+                    title: 'يا بطل كمل البيانات!',
+                    text: 'اتأكد إنك كتبت اسم الأكلة، السعرات، والكمية صح.',
+                    icon: 'warning',
+                    confirmButtonText: 'حاضر'
+                });
+                return;
+            }
+
+            let mealCals = (weight * cal100) / 100;
+            let mealProtein = (weight * prot100) / 100;
+            let mealCarbs = (weight * carb100) / 100;
+            let mealFat = Math.max(0, (mealCals - (mealProtein * 4 + mealCarbs * 4)) / 9);
+
+            let userData = usersData[activeUser];
+            if (!userData.days[selectedDate]) {
+                userData.days[selectedDate] = [];
+            }
+
+            userData.days[selectedDate].push({
+                id: Date.now(),
+                category: category,
+                name: meal,
+                weight: weight,
+                cals: mealCals,
+                protein: mealProtein,
+                carbs: mealCarbs,
+                fat: mealFat
+            });
+
+            localStorage.setItem("caloriez_users_v4", JSON.stringify(usersData));
+            renderMeals();
+
+            document.getElementById("mealName").value = "";
+            document.getElementById("caloriesPer100").value = "";
+            document.getElementById("eatenWeight").value = "";
+            document.getElementById("proteinPer100").value = "";
+            document.getElementById("carbsPer100").value = "";
+        }
+
+        function deleteMeal(id) {
+            let userData = usersData[activeUser];
+            if (userData.days[selectedDate]) {
+                userData.days[selectedDate] = userData.days[selectedDate].filter(m => m.id !== id);
+                localStorage.setItem("caloriez_users_v4", JSON.stringify(usersData));
+                renderMeals();
+            }
+        }
+
+        function renderMeals() {
+            let tableBody = document.getElementById("mealsTableBody");
+            let userData = usersData[activeUser];
+            let dayMeals = (userData.days && userData.days[selectedDate]) ? userData.days[selectedDate] : [];
+            
+            tableBody.innerHTML = "";
+            let currentTotal = 0;
+            let totalProt = 0, totalCarbs = 0, totalFat = 0;
+
+            const categories = ["فطار", "غدا", "عشا", "سناكس"];
+            
+            categories.forEach(cat => {
+                let catMeals = dayMeals.filter(m => m.category === cat);
+                if (catMeals.length > 0) {
+                    tableBody.innerHTML += `
+                        <tr class="meal-category-row">
+                            <td colspan="4">📌 وجبة الـ ${cat}</td>
+                        </tr>
+                    `;
+                    catMeals.forEach(m => {
+                        currentTotal += m.cals;
+                        totalProt += m.protein || 0;
+                        totalCarbs += m.carbs || 0;
+                        totalFat += m.fat || 0;
+
+                        let formattedCals = m.cals % 1 === 0 ? m.cals.toFixed(0) : m.cals.toFixed(1);
+                        tableBody.innerHTML += `
+                            <tr>
+                                <td style="padding-right: 20px;">• ${m.name}</td>
+                                <td>${m.weight} جم/وحدة</td>
+                                <td class="cals-val">${formattedCals} سعرة</td>
+                                <td><button class="delete-btn" onclick="deleteMeal(${m.id})"><i class='bx bx-trash'></i></button></td>
+                            </tr>
+                        `;
+                    });
+                }
+            });
+
+            if (dayMeals.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="4" style="text-align:center; opacity:0.6; padding: 20px;">مفيش وجبات مسجلة في التاريخ ده لحد دلوقتي!</td></tr>`;
+            }
+
+            document.getElementById("totalCalories").innerText = currentTotal.toFixed(0);
+
+            document.getElementById("proteinProgress").innerText = `${totalProt.toFixed(0)} / ${userData.targetProtein} جم`;
+            document.getElementById("carbsProgress").innerText = `${totalCarbs.toFixed(0)} / ${userData.targetCarbs} جم`;
+            document.getElementById("fatProgress").innerText = `${totalFat.toFixed(0)} / ${userData.targetFat} جم`;
+
+            document.getElementById("streakCount").innerText = userData.streak || 0;
+            if (currentTotal > 0 && Math.abs(currentTotal - userData.targetCals) <= 150) {
+                userData.streak = (userData.streak || 0) + 1;
+                document.getElementById("achievementBadge").innerText = "🏆 مستواك: التزام ذهبي 🥇";
+            } else {
+                document.getElementById("achievementBadge").innerText = "🏆 مستواك: بطل جامد";
+            }
+
+            let target = userData.targetCals;
+            let remaining = target - currentTotal;
+            let remainingDisplay = document.getElementById("remainingDisplay");
+            if (remaining >= 0) {
+                remainingDisplay.innerText = remaining.toFixed(0) + " سعرة متبقية";
+                remainingDisplay.style.color = "var(--primary)";
+            } else {
+                remainingDisplay.innerText = Math.abs(remaining.toFixed(0)) + " سعرة زيادة! ⚠️";
+                remainingDisplay.style.color = "var(--danger)";
+            }
+        }
+
+        function toggleTheme() {
+            let htmlClass = document.documentElement.classList;
+            let currentTheme = htmlClass.contains("dark") ? "dark" : "light";
+            let newTheme = currentTheme === "dark" ? "light" : "dark";
+            setTheme(newTheme);
+        }
+
+        function setTheme(theme) {
+            let htmlClass = document.documentElement.classList;
+            let themeIcon = document.getElementById("themeIcon");
+
+            if (theme === "dark") {
+                htmlClass.add("dark");
+                themeIcon.className = 'bx bx-sun';
+                localStorage.setItem("caloriez_theme", "dark");
+            } else {
+                htmlClass.remove("dark");
+                themeIcon.className = 'bx bx-moon';
+                localStorage.setItem("caloriez_theme", "light");
+            }
+        }
+
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            document.getElementById("pwaInstallBanner").style.display = "block";
+        });
+
+        function installPWA() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        document.getElementById("pwaInstallBanner").style.display = "none";
+                    }
+                    deferredPrompt = null;
+                });
+            } else {
+                alert("تقدر تضيف الموقع للشاشة الرئيسية من قائمة متصفحك واختار 'إضافة إلى الشاشة الرئيسية' (Add to Home Screen).");
+            }
+        }
+    </script>
+</body>
+</html>
